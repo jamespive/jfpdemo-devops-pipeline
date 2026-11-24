@@ -1,0 +1,63 @@
+name: CI-CD Pipeline (Composite Action)
+
+# Example pipeline that uses the local composite action in .github/actions/servicenow-devops.
+# Manual trigger only, so it does not create a second change request on every push.
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package app
+        run: |
+          mkdir -p dist
+          zip -r dist/jfpdemo-app-${{ github.run_number }}.zip app
+      - name: Register artifact
+        uses: ./.github/actions/servicenow-devops
+        with:
+          step: register-artifact
+          job-name: Build
+          instance-url: ${{ secrets.SN_INSTANCE_URL }}
+          tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
+          integration-token: ${{ secrets.SN_DEVOPS_INTEGRATION_TOKEN }}
+          app-name: jfpdemo-app
+
+  test:
+    name: Test
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: |
+          sh app/hello.sh
+          sh app/make-report.sh
+      - name: Publish test results
+        uses: ./.github/actions/servicenow-devops
+        with:
+          step: test-report
+          job-name: Test
+          instance-url: ${{ secrets.SN_INSTANCE_URL }}
+          tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
+          integration-token: ${{ secrets.SN_DEVOPS_INTEGRATION_TOKEN }}
+
+  deploy:
+    name: Deploy
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Request change approval
+        uses: ./.github/actions/servicenow-devops
+        with:
+          step: change
+          job-name: Deploy
+          instance-url: ${{ secrets.SN_INSTANCE_URL }}
+          tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
+          integration-token: ${{ secrets.SN_DEVOPS_INTEGRATION_TOKEN }}
+          change-request: '{"setCloseCode":"true","autoCloseChange":true,"attributes":{"assignment_group":"a715cd759f2002002920bde8132e7018","cmdb_ci":{"name": "claude-opus-4-8"},"short_description":"Deploy jfpdemo-app run ${{ github.run_number }} (composite)","description":"Automated deployment from GitHub Actions using a composite action","implementation_plan":"Deploy build","backout_plan":"Redeploy previous build","test_plan":"Smoke tests passed"}}'
+      - name: Deploy
+        run: echo "Deploying jfpdemo-app build ${{ github.run_number }}"

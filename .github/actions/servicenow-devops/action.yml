@@ -1,0 +1,67 @@
+name: ServiceNow DevOps step
+description: Composite action that wraps the OOTB ServiceNow DevOps actions (register artifact, test report, change request)
+
+inputs:
+  step:
+    description: "Which ServiceNow step to run: register-artifact | test-report | change"
+    required: true
+  job-name:
+    description: Name of the calling job as reported by GitHub (e.g. Build)
+    required: true
+  instance-url:
+    description: ServiceNow instance URL
+    required: true
+  tool-id:
+    description: sys_id of the ServiceNow GitHub tool record
+    required: true
+  integration-token:
+    description: ServiceNow DevOps integration token for the tool
+    required: true
+  app-name:
+    description: Application name (register-artifact and change)
+    default: jfpdemo-app
+  xml-report-filename:
+    description: JUnit XML report path (test-report)
+    default: test-results.xml
+  change-request:
+    description: Change request JSON (change)
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Register artifact in ServiceNow
+      if: inputs.step == 'register-artifact'
+      uses: ServiceNow/servicenow-devops-register-artifact@v7.1.0
+      with:
+        devops-integration-token: ${{ inputs.integration-token }}
+        instance-url: ${{ inputs.instance-url }}
+        tool-id: ${{ inputs.tool-id }}
+        context-github: ${{ toJSON(github) }}
+        job-name: ${{ inputs.job-name }}
+        artifacts: '[{"name":"${{ inputs.app-name }}","version":"1.0.${{ github.run_number }}","semanticVersion":"1.0.${{ github.run_number }}","repositoryName":"${{ github.repository }}"}]'
+
+    - name: Publish test results to ServiceNow
+      if: inputs.step == 'test-report'
+      uses: ServiceNow/servicenow-devops-test-report@v7.1.0
+      with:
+        devops-integration-token: ${{ inputs.integration-token }}
+        instance-url: ${{ inputs.instance-url }}
+        tool-id: ${{ inputs.tool-id }}
+        context-github: ${{ toJSON(github) }}
+        job-name: ${{ inputs.job-name }}
+        xml-report-filename: ${{ inputs.xml-report-filename }}
+
+    - name: Request change approval in ServiceNow
+      if: inputs.step == 'change'
+      uses: ServiceNow/servicenow-devops-change@v7.1.0
+      with:
+        devops-integration-token: ${{ inputs.integration-token }}
+        instance-url: ${{ inputs.instance-url }}
+        tool-id: ${{ inputs.tool-id }}
+        context-github: ${{ toJSON(github) }}
+        job-name: ${{ inputs.job-name }}
+        change-request: ${{ inputs.change-request }}
+        interval: '100'
+        timeout: '3600'
