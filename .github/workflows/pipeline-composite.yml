@@ -54,21 +54,32 @@ jobs:
       - name: Deploy to development
         run: echo "Deploying jfpdemo-app build ${{ github.run_number }} to development"
 
-  deploy:
-    name: Deploy
+  # Creates the change request and registers the deployment gate for the production Deploy job.
+  # The change is approved in ServiceNow, which then releases the gated Deploy job below.
+  change:
+    name: Change
     needs: deploy-dev
     runs-on: ubuntu-latest
-    environment: production
     steps:
       - uses: actions/checkout@v4
-      - name: Request change approval
+      - name: Create change and register deployment gate
         uses: ./.github/actions/servicenow-devops
         with:
-          step: change
-          job-name: Deploy
+          step: change-gate
+          job-name: Change
+          deployment-gate: '{"environment":"production","jobName":"Deploy"}'
           instance-url: ${{ secrets.SN_INSTANCE_URL }}
           tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
           integration-token: ${{ secrets.SN_DEVOPS_INTEGRATION_TOKEN }}
           change-request: '{"setCloseCode":"true","autoCloseChange":true,"attributes":{"assignment_group":"a715cd759f2002002920bde8132e7018","cmdb_ci":{"name": "claude-opus-4-8"},"short_description":"Deploy jfpdemo-app run ${{ github.run_number }} (composite)","description":"Automated deployment from GitHub Actions using a composite action","implementation_plan":"Deploy build","backout_plan":"Redeploy previous build","test_plan":"Smoke tests passed"}}'
+
+  # Gated by the production environment (ServiceNow DevOps app deployment protection rule).
+  # No change step here: the change was created by the Change job above.
+  deploy:
+    name: Deploy
+    needs: change
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
       - name: Deploy
         run: echo "Deploying jfpdemo-app build ${{ github.run_number }}"
