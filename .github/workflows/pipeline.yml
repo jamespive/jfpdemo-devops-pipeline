@@ -6,60 +6,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Package app
-        run: |
-          mkdir -p dist
-          zip -r dist/app-${{ github.run_number }}.zip app
-      - name: Register artifact in ServiceNow
-        uses: ServiceNow/servicenow-devops-register-artifact@v7.1.0
-        with:
-          devops-integration-token: ${{ secrets.SN_DEVOPS_INTEGRATION_TOKEN }}
-          instance-url: ${{ secrets.SN_INSTANCE_URL }}
-          tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
-          context-github: ${{ toJSON(github) }}
-          job-name: Build
-          artifacts: '[{"name":"jfpdemo-app","version":"1.0.${{ github.run_number }}","semanticVersion":"1.0.${{ github.run_number }}","repositoryName":"${{ github.repository }}"}]'
-
-  test:
-    name: Test
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run tests
-        run: |
-          sh app/hello.sh
-          sh app/make-report.sh
-      - name: Publish test results to ServiceNow
-        uses: ServiceNow/servicenow-devops-test-report@v7.1.0
-        with:
-          devops-integration-token: ${{ secrets.SN_DEVOPS_INTEGRATION_TOKEN }}
-          instance-url: ${{ secrets.SN_INSTANCE_URL }}
-          tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
-          context-github: ${{ toJSON(github) }}
-          job-name: Test
-          xml-report-filename: test-results.xml
-
-  deploy:
-    name: Deploy
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Request change approval in ServiceNow
-        uses: ServiceNow/servicenow-devops-change@v7.1.0
-        with:
-          devops-integration-token: ${{ secrets.SN_DEVOPS_INTEGRATION_TOKEN }}
-          instance-url: ${{ secrets.SN_INSTANCE_URL }}
-          tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
-          context-github: ${{ toJSON(github) }}
-          job-name: Deploy
-          change-request: '{"setCloseCode":"true","autoCloseChange":true,"attributes":{"assignment_group":"a715cd759f2002002920bde8132e7018","cmdb_ci":{"name": "claude-opus-4-8"},"short_description":"Deploy jfpdemo-app run ${{ github.run_number }}","description":"Automated deployment from GitHub Actions","implementation_plan":"Deploy build","backout_plan":"Redeploy previous build","test_plan":"Smoke tests passed"}}'
-          interval: '100'
-          timeout: '3600'
-      - name: Deploy
-        run: echo "Deploying build ${{ github.run_number }}"
+  pipeline:
+    name: Pipeline
+    uses: ./.github/workflows/reusable-servicenow-pipeline.yml
+    with:
+      app-name: jfpdemo-app
+      caller-job-name: Pipeline
+    secrets:
+      SN_INSTANCE_URL: ${{ secrets.SN_INSTANCE_URL }}
+      SN_ORCHESTRATION_TOOL_ID: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
+      SN_DEVOPS_INTEGRATION_TOKEN: ${{ secrets.SN_DEVOPS_INTEGRATION_TOKEN }}
