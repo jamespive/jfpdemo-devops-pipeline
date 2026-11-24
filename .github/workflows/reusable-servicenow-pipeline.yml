@@ -59,9 +59,19 @@ jobs:
           job-name: ${{ inputs.caller-job-name }} / Test
           xml-report-filename: test-results.xml
 
+  deploy-dev:
+    name: Deploy Dev
+    needs: test
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      # No ServiceNow change step: development deployments do not require a change request
+      - name: Deploy to development
+        run: echo "Deploying ${{ inputs.app-name }} build ${{ github.run_number }} to development"
+
   deploy:
     name: Deploy
-    needs: test
+    needs: deploy-dev
     runs-on: ubuntu-latest
     environment: production
     steps:

@@ -44,9 +44,19 @@ jobs:
           tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
           integration-token: ${{ secrets.SN_DEVOPS_INTEGRATION_TOKEN }}
 
+  deploy-dev:
+    name: Deploy Dev
+    needs: test
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      # No ServiceNow change step: development deployments do not require a change request
+      - name: Deploy to development
+        run: echo "Deploying jfpdemo-app build ${{ github.run_number }} to development"
+
   deploy:
     name: Deploy
-    needs: test
+    needs: deploy-dev
     runs-on: ubuntu-latest
     environment: production
     steps:
