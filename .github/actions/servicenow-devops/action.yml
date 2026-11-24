@@ -24,11 +24,7 @@ inputs:
     description: JUnit XML report path (test-report)
     default: test-results.xml
   change-request:
-    description: Change request JSON (change, change-gate)
-    required: false
-    default: ''
-  deployment-gate:
-    description: 'Deployment gate JSON, e.g. {"environment":"production","jobName":"Deploy"} (change-gate)'
+    description: Change request JSON (change)
     required: false
     default: ''
 
@@ -67,19 +63,5 @@ runs:
         context-github: ${{ toJSON(github) }}
         job-name: ${{ inputs.job-name }}
         change-request: ${{ inputs.change-request }}
-        interval: '100'
-        timeout: '3600'
-
-    - name: Create change and register deployment gate in ServiceNow
-      if: inputs.step == 'change-gate'
-      uses: ServiceNow/servicenow-devops-change@v7.1.0
-      with:
-        devops-integration-token: ${{ inputs.integration-token }}
-        instance-url: ${{ inputs.instance-url }}
-        tool-id: ${{ inputs.tool-id }}
-        context-github: ${{ toJSON(github) }}
-        job-name: ${{ inputs.job-name }}
-        change-request: ${{ inputs.change-request }}
-        deployment-gate: ${{ inputs.deployment-gate }}
         interval: '100'
         timeout: '3600'
