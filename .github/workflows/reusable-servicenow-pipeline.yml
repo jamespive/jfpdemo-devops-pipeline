@@ -63,6 +63,7 @@ jobs:
     name: Deploy
     needs: test
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - name: Request change approval in ServiceNow
         uses: ServiceNow/servicenow-devops-change@v7.1.0
