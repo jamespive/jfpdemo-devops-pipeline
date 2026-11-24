@@ -58,7 +58,7 @@ jobs:
           tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
           context-github: ${{ toJSON(github) }}
           job-name: Deploy
-          change-request: '{"setCloseCode":"true","autoCloseChange":true,"attributes":{"short_description":"Deploy jfpdemo-app run ${{ github.run_number }}","description":"Automated deployment from GitHub Actions","implementation_plan":"Deploy build","backout_plan":"Redeploy previous build","test_plan":"Smoke tests passed"}}'
+          change-request: '{"setCloseCode":"true","autoCloseChange":true,"attributes":{"assignment_group":"a715cd759f2002002920bde8132e7018","cmdb_ci":{"name": "claude-opus-4-8"},"short_description":"Deploy jfpdemo-app run ${{ github.run_number }}","description":"Automated deployment from GitHub Actions","implementation_plan":"Deploy build","backout_plan":"Redeploy previous build","test_plan":"Smoke tests passed"}}'
           interval: '100'
           timeout: '3600'
       - name: Deploy
