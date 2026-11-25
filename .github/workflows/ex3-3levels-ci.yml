@@ -37,7 +37,7 @@ jobs:
           tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
           context-github: ${{ toJSON(github) }}
           job-name: ${{ inputs.prefix }} / Build
-          artifacts: '[{"name":"${{ inputs.app-name }}","version":"1.0.${{ github.run_number }}","semanticVersion":"1.0.${{ github.run_number }}","repositoryName":"${{ github.repository }}"}]'
+          artifacts: '[{"name":"${{ inputs.app-name }}","version":"1.0.${{ github.run_number }}-${{ github.run_id }}","semanticVersion":"1.0.${{ github.run_number }}-${{ github.run_id }}","repositoryName":"${{ github.repository }}"}]'
 
   test:
     name: Test
