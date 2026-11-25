@@ -11,7 +11,9 @@ jobs:
     name: Pipeline
     uses: ./.github/workflows/reusable-stages.yml
     with:
-      app-name: jfpdemo-app
+      # Distinct artifact name: version numbers come from github.run_number (per workflow),
+      # so sharing "jfpdemo-app" with the other pipelines causes duplicate-version registrations
+      app-name: jfpdemo-app-3levels
       prefix: Pipeline
     secrets:
       SN_INSTANCE_URL: ${{ secrets.SN_INSTANCE_URL }}
