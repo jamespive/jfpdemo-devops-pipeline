@@ -1,0 +1,50 @@
+name: Reusable CD
+
+# Level 3 of 3 (CD): development deploy (no change) then production deploy (with a change request).
+on:
+  workflow_call:
+    inputs:
+      app-name:
+        type: string
+        default: jfpdemo-app
+      prefix:
+        description: Full name of the calling job chain, e.g. "Pipeline / CD"
+        type: string
+        required: true
+    secrets:
+      SN_INSTANCE_URL:
+        required: true
+      SN_ORCHESTRATION_TOOL_ID:
+        required: true
+      SN_DEVOPS_INTEGRATION_TOKEN:
+        required: true
+
+jobs:
+  deploy-dev:
+    name: Deploy Dev
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      # No ServiceNow change step: development deployments do not require a change request
+      - name: Deploy to development
+        run: echo "Deploying ${{ inputs.app-name }} build ${{ github.run_number }} to development"
+
+  deploy:
+    name: Deploy
+    needs: deploy-dev
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Request change approval in ServiceNow
+        uses: ServiceNow/servicenow-devops-change@v7.1.0
+        with:
+          devops-integration-token: ${{ secrets.SN_DEVOPS_INTEGRATION_TOKEN }}
+          instance-url: ${{ secrets.SN_INSTANCE_URL }}
+          tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
+          context-github: ${{ toJSON(github) }}
+          job-name: ${{ inputs.prefix }} / Deploy
+          change-request: '{"setCloseCode":"true","autoCloseChange":true,"attributes":{"assignment_group":"a715cd759f2002002920bde8132e7018","cmdb_ci":{"name": "claude-opus-4-8"},"short_description":"Deploy ${{ inputs.app-name }} run ${{ github.run_number }} (3 levels)","description":"Automated deployment from GitHub Actions, three-level reusable workflow","implementation_plan":"Deploy build","backout_plan":"Redeploy previous build","test_plan":"Smoke tests passed"}}'
+          interval: '100'
+          timeout: '3600'
+      - name: Deploy
+        run: echo "Deploying ${{ inputs.app-name }} build ${{ github.run_number }}"

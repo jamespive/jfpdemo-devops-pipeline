@@ -1,0 +1,60 @@
+name: Reusable CI
+
+# Level 3 of 3 (CI): Build and Test jobs.
+on:
+  workflow_call:
+    inputs:
+      app-name:
+        type: string
+        default: jfpdemo-app
+      prefix:
+        description: Full name of the calling job chain, e.g. "Pipeline / CI"
+        type: string
+        required: true
+    secrets:
+      SN_INSTANCE_URL:
+        required: true
+      SN_ORCHESTRATION_TOOL_ID:
+        required: true
+      SN_DEVOPS_INTEGRATION_TOKEN:
+        required: true
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package app
+        run: |
+          mkdir -p dist
+          zip -r dist/${{ inputs.app-name }}-${{ github.run_number }}.zip app
+      - name: Register artifact in ServiceNow
+        uses: ServiceNow/servicenow-devops-register-artifact@v7.1.0
+        with:
+          devops-integration-token: ${{ secrets.SN_DEVOPS_INTEGRATION_TOKEN }}
+          instance-url: ${{ secrets.SN_INSTANCE_URL }}
+          tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
+          context-github: ${{ toJSON(github) }}
+          job-name: ${{ inputs.prefix }} / Build
+          artifacts: '[{"name":"${{ inputs.app-name }}","version":"1.0.${{ github.run_number }}","semanticVersion":"1.0.${{ github.run_number }}","repositoryName":"${{ github.repository }}"}]'
+
+  test:
+    name: Test
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: |
+          sh app/hello.sh
+          sh app/make-report.sh
+      - name: Publish test results to ServiceNow
+        uses: ServiceNow/servicenow-devops-test-report@v7.1.0
+        with:
+          devops-integration-token: ${{ secrets.SN_DEVOPS_INTEGRATION_TOKEN }}
+          instance-url: ${{ secrets.SN_INSTANCE_URL }}
+          tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
+          context-github: ${{ toJSON(github) }}
+          job-name: ${{ inputs.prefix }} / Test
+          xml-report-filename: test-results.xml

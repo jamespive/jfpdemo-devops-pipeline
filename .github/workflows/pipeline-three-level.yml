@@ -1,0 +1,19 @@
+name: CI-CD Pipeline (3 Levels)
+
+# Level 1 of 3: caller. Job names reported by GitHub (and sent to ServiceNow) look like:
+#   Pipeline / CI / Build, Pipeline / CI / Test, Pipeline / CD / Deploy Dev, Pipeline / CD / Deploy
+# Manual trigger only, so it does not create an extra change request on every push.
+on:
+  workflow_dispatch:
+
+jobs:
+  pipeline:
+    name: Pipeline
+    uses: ./.github/workflows/reusable-stages.yml
+    with:
+      app-name: jfpdemo-app
+      prefix: Pipeline
+    secrets:
+      SN_INSTANCE_URL: ${{ secrets.SN_INSTANCE_URL }}
+      SN_ORCHESTRATION_TOOL_ID: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
+      SN_DEVOPS_INTEGRATION_TOKEN: ${{ secrets.SN_DEVOPS_INTEGRATION_TOKEN }}
