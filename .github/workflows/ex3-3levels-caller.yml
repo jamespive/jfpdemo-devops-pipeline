@@ -9,7 +9,7 @@ on:
 jobs:
   pipeline:
     name: Pipeline
-    uses: ./.github/workflows/reusable-stages.yml
+    uses: ./.github/workflows/ex3-3levels-stages.yml
     with:
       # Distinct artifact name: version numbers come from github.run_number (per workflow),
       # so sharing "jfpdemo-app" with the other pipelines causes duplicate-version registrations

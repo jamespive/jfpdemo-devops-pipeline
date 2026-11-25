@@ -22,7 +22,7 @@ on:
 jobs:
   ci:
     name: CI
-    uses: ./.github/workflows/reusable-ci.yml
+    uses: ./.github/workflows/ex3-3levels-ci.yml
     with:
       app-name: ${{ inputs.app-name }}
       prefix: ${{ inputs.prefix }} / CI
@@ -34,7 +34,7 @@ jobs:
   cd:
     name: CD
     needs: ci
-    uses: ./.github/workflows/reusable-cd.yml
+    uses: ./.github/workflows/ex3-3levels-cd.yml
     with:
       app-name: ${{ inputs.app-name }}
       prefix: ${{ inputs.prefix }} / CD

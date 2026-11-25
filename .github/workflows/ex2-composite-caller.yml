@@ -1,6 +1,6 @@
 name: CI-CD Pipeline (Composite Action)
 
-# Example pipeline that uses the local composite action in .github/actions/servicenow-devops.
+# Example pipeline that uses the local composite action in .github/actions/ex2-composite-servicenow.
 # Manual trigger only, so it does not create a second change request on every push.
 on:
   workflow_dispatch:
@@ -16,7 +16,7 @@ jobs:
           mkdir -p dist
           zip -r dist/jfpdemo-app-${{ github.run_number }}.zip app
       - name: Register artifact
-        uses: ./.github/actions/servicenow-devops
+        uses: ./.github/actions/ex2-composite-servicenow
         with:
           step: register-artifact
           job-name: Build
@@ -38,7 +38,7 @@ jobs:
           sh app/hello.sh
           sh app/make-report.sh
       - name: Publish test results
-        uses: ./.github/actions/servicenow-devops
+        uses: ./.github/actions/ex2-composite-servicenow
         with:
           step: test-report
           job-name: Test
@@ -64,7 +64,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Request change approval
-        uses: ./.github/actions/servicenow-devops
+        uses: ./.github/actions/ex2-composite-servicenow
         with:
           step: change
           job-name: Deploy
