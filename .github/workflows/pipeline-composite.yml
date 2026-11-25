@@ -23,7 +23,9 @@ jobs:
           instance-url: ${{ secrets.SN_INSTANCE_URL }}
           tool-id: ${{ secrets.SN_ORCHESTRATION_TOOL_ID }}
           integration-token: ${{ secrets.SN_DEVOPS_INTEGRATION_TOKEN }}
-          app-name: jfpdemo-app
+          # Distinct artifact name per pipeline: versions come from github.run_number (per workflow),
+          # so sharing one name across pipelines causes duplicate-version registrations
+          app-name: jfpdemo-app-composite
 
   test:
     name: Test
