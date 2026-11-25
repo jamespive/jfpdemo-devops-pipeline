@@ -1,4 +1,4 @@
-name: CI-CD Pipeline (Composite Action)
+name: EX2 Composite - Caller
 
 # Example pipeline that uses the local composite action in .github/actions/ex2-composite-servicenow.
 # Manual trigger only, so it does not create a second change request on every push.

@@ -1,4 +1,4 @@
-name: Reusable CD
+name: EX3 3Levels - CD
 
 # Level 3 of 3 (CD): development deploy (no change) then production deploy (with a change request).
 on:

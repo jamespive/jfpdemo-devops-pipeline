@@ -1,4 +1,4 @@
-name: CI-CD Pipeline (3 Levels)
+name: EX3 3Levels - Caller
 
 # Level 1 of 3: caller. Job names reported by GitHub (and sent to ServiceNow) look like:
 #   Pipeline / CI / Build, Pipeline / CI / Test, Pipeline / CD / Deploy Dev, Pipeline / CD / Deploy

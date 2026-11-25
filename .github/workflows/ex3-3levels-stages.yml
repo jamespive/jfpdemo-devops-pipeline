@@ -1,4 +1,4 @@
-name: Reusable Stages
+name: EX3 3Levels - Stages
 
 # Level 2 of 3: splits the pipeline into a CI stage and a CD stage, each a reusable workflow.
 on:

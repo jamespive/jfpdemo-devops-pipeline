@@ -1,4 +1,4 @@
-name: Reusable CI
+name: EX3 3Levels - CI
 
 # Level 3 of 3 (CI): Build and Test jobs.
 on:

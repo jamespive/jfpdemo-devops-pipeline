@@ -1,4 +1,4 @@
-name: CI-CD Pipeline
+name: EX1 Reusable - Caller
 
 on:
   push:
